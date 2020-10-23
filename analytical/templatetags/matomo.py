@@ -22,7 +22,7 @@ DOMAINPATH_RE = re.compile(r'^(([^./?#@:]+\.)*[^./?#@:]+)+(:[0-9]+)?(/[^/?#@:]+)
 SITEID_RE = re.compile(r'^\d+$')
 
 TRACKING_CODE = """
-<script type="text/javascript">
+<script type="text/javascript" %(nonce)s>
   var _paq = window._paq || [];
   %(variables)s
   %(commands)s
@@ -102,11 +102,16 @@ class MatomoNode(Node):
                 IDENTITY_CODE % {'userid': userid},
             ))
 
+        # this works if using csp_nonce.middleware.CSPNonceMiddleware
+        nonce = 'nonce={0}'.format(context.request.script_nonce) \
+            if hasattr(context.request, 'script_nonce') else ''
+
         html = TRACKING_CODE % {
             'url': self.domain_path,
             'siteid': self.site_id,
             'variables': '\n  '.join(variables_code),
-            'commands': '\n  '.join(commands)
+            'commands': '\n  '.join(commands),
+            'nonce': nonce
         }
         if is_internal_ip(context, 'MATOMO'):
             html = disable_html(html, 'Matomo')
