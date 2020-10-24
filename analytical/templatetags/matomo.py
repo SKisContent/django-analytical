@@ -103,8 +103,10 @@ class MatomoNode(Node):
             ))
 
         # this works if using csp_nonce.middleware.CSPNonceMiddleware
-        nonce = 'nonce={0}'.format(context.request.script_nonce) \
-            if hasattr(context.request, 'script_nonce') else ''
+        if hasattr(context, 'request') and hasattr(context.request, 'script_nonce'):
+            nonce = 'nonce={0}'.format(context.request.script_nonce)
+        else:
+            nonce = ''
 
         html = TRACKING_CODE % {
             'url': self.domain_path,
